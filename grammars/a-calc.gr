@@ -1,0 +1,17 @@
+E -> T
+E -> E+T
+E -> E-T
+T -> P
+T -> T*P
+T -> T/P
+P -> 0P
+P -> 1P
+P -> 2P
+P -> 3P
+P -> 4P
+P -> 5P
+P -> 6P
+P -> 7P
+P -> 8P
+P -> 9P
+P -> 
