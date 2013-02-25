@@ -1,19 +1,4 @@
-def load_grammar(path):
-	f = open(path)
-	grammar = {}
-
-	for line in f.readlines():
-		rule = line.split(" -> ")
-
-		if '__root__' not in grammar:
-			grammar['__root__'] = rule[0]
-
-		if rule[0] not in grammar:
-			grammar[rule[0]] = [rule[1].strip()]
-		else:
-			grammar[rule[0]].append(rule[1].strip())
-
-	return grammar
+import grammar
 
 def peek(s, i, fallback):
 	if i < len(s):
@@ -57,22 +42,28 @@ def earley(w, G, k=1):
 				if l == w[s_i:s_i+k]:
 					#print("lookahead %s matches w[i] %s" % (l, w[s_i:s_i+k]))
 					for old_q in sets[s]:
-					#	print("checking %s if %s matches %s" % (s, P[0], old_q[0][1]))
-						if P[0] == peek(old_q[0][1], old_q[1], old_q[2]):
-							q_new = (old_q[0], old_q[1]+1, old_q[2], old_q[3])
-							print("         %s -> %s (%s)" % (q_new[0][0], insert(q_new[0][1], '.',q_new[1]), q_new[3]))
+						rule = old_q[0]
+						pos = old_q[1]
+						lookahead = old_q[2]
+						origin = old_q[3]
+
+					#	print("checking %s if %s matches %s" % (s, P[0], rule[1]))
+						if P[0] == peek(rule[1], pos, lookahead):
+							q_new = (rule, pos+1, lookahead, origin)
+							rule_body_verbose = " ".join(rule[1][:pos]) + '.'+ " ".join(rule[1][pos:])
+							print("         %s -> %s (%s)" % (rule[0], rule_body_verbose, origin))
 							current_set.append(q_new)
 				#else:
 				#	print("lookahead %s doesn't match w[i] %s" % (l, w[s_i:s_i+k]))
 			else:
-				P_i = peek(P[1], i, l)
-				if P_i in G.keys(): # nonterminal next to dot -> predictor applicable
-					for rule_body in G[P_i]:
-						q_new = ((P_i, rule_body), 0, peek(P[1], i+k, l), s_i)
+				next_symbol = peek(P[1], i, l)
+				if next_symbol in G.keys(): # nonterminal next to dot -> predictor applicable
+					for rule_body in G[next_symbol]:
+						q_new = ((next_symbol, rule_body), 0, peek(P[1], i+k, l), s_i)
 						if q_new not in current_set:
 							print("         %s -> %s (%s) [P]" % (q_new[0][0], q_new[0][1], q_new[3]))
 							current_set.append(q_new)
-				elif (P_i == peek(w, s_i, '#')) or (P_i == '#'): # terminal next to dot -> scanner applicable
+				elif (next_symbol == peek(w, s_i, '#')) or (next_symbol == '#'): # terminal next to dot -> scanner applicable
 					q_new = (P, i+1, l, s)
 					print("         [SCANNER] %s -> %s (%s)" % (q_new[0][0], q_new[0][1], q_new[3]))
 					sets[s_i+1].append(q_new)
@@ -89,8 +80,10 @@ def earley(w, G, k=1):
 #------------------
 
 def main():
-	grammar_path = raw_input('Grammar file: ')
-	G = load_grammar(grammar_path)
+	grammar_path = 'grammars/a-calc.gr' #raw_input('Grammar file: ')
+	G = grammar.load(grammar_path)
+
+	print(G)
 
 	while True:
 		w = raw_input('Input: ')
