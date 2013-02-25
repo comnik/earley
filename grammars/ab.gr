@@ -1,2 +1,2 @@
-P -> aPb
-P -> 
+P -> a P b
+P -> a b
